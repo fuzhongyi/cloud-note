@@ -7,7 +7,10 @@ import Done from 'material-ui-icons/Done';
 import AddIcon from 'material-ui-icons/Add';
 import KeyboardArrowLeft from 'material-ui-icons/KeyboardArrowLeft';
 import pink from 'material-ui/colors/pink';
+import red from 'material-ui/colors/red';
 import swirl from '../assets/swirl.png';
+import {tinLeftIn, tinRightIn, slideDownReturn} from 'react-magic'
+import {StyleSheet, css} from 'aphrodite';
 const styles = theme => ({
     root: {
         backgroundImage: `url(${swirl})`,
@@ -17,10 +20,12 @@ const styles = theme => ({
         zIndex: -2,
     },
     loginBox: {
-        transition: 'width,height .3s',
+        transition: 'width,height .5s',
         borderRadius: 8,
         margin: '0 auto',
         width: '80vw',
+        minWidth: 256,
+        maxWidth: 350,
         height: 300,
         backgroundColor: '#fff',
         position: 'relative',
@@ -54,6 +59,15 @@ const styles = theme => ({
         top: 20,
         right: -20
     },
+    errorMsg: {
+        position: 'absolute',
+        top: 0,
+        left: -195 / 2,
+        width: 195,
+        textAlign: 'center',
+        fontSize: 14,
+        color: red['A400']
+    },
     submit: {
         marginTop: 30,
         width: 150,
@@ -63,9 +77,29 @@ const styles = theme => ({
         border: 0,
         color: 'white',
         padding: '0 30px',
-        boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .30)'
+        transition: 'width .5s',
+        boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .30)',
+        '@media only screen and (min-width: 960px)': {
+            width: 195
+        }
     }
 });
+const animate = StyleSheet.create({
+    tinLeftIn: {
+        animationName: tinLeftIn,
+        animationDuration: '1s'
+    },
+    tinRightIn: {
+        animationName: tinRightIn,
+        animationDuration: '1s'
+    },
+    slideDownReturn: {
+        animationName: slideDownReturn,
+        animationDuration: '1s'
+    }
+});
+const url = '//5a56cb24eb96f9001230ace6.mockapi.io/api/v1/users';
+
 class Login extends Component {
     constructor(props) {
         super(props);
@@ -73,101 +107,191 @@ class Login extends Component {
         this.state = {
             username: '',
             password: '',
-            formSelect: ''
+            formSelect: '',
+            errorMsg: '',
+            users: []
         }
     }
 
     componentWillMount() {
-        console.log('123')
         this.setState({
             formSelect: 'login'
-        })
+        });
+        this.getUser();
+    }
+
+    getUser() {
+        fetch(url, {method: 'get'})
+            .then(response => response.json())
+            .then(users => this.setState({users}))
+            .catch(error => {
+                console.log(error)
+            })
     }
 
     handleChange = name => event => {
-        this.setState({
-            [name]: event.target.value
-        })
+        let state = {[name]: event.target.value};
+        if (this.state.errorMsg !== '') {
+            state = {...state, errorMsg: ''}
+        }
+        this.setState(state);
     };
 
     toggleForm() {
         this.setState(prevState => ({
-            formSelect: prevState.formSelect === 'login' ? 'register' : 'login'
+            username: '',
+            password: '',
+            errorMsg: '',
+            formSelect: prevState.formSelect === 'login' ? 'register' : 'login',
         }))
+    }
+
+    login() {
+        const {username, password, users} = this.state;
+        let errorMsg = '账户不存在';
+        if (username.trim() === '' || password === '') {
+            errorMsg = '输入内容不能为空';
+        } else {
+            for (let user of users) {
+                if (user.username === username) {
+                    if (user.password !== password) {
+                        errorMsg = '账户密码不匹配';
+                    } else {
+                        errorMsg = '';
+                    }
+                }
+            }
+        }
+        if (errorMsg === '') {
+            console.log('登陆成功');
+        }
+        this.setState({errorMsg})
+    }
+
+    register() {
+        const {username, password, users} = this.state;
+        let userIds = users.map(v => v.id);
+        let errorMsg = '';
+        if (username.trim() === '' || password === '') {
+            errorMsg = '输入内容不能为空';
+            this.setState({errorMsg});
+            return false;
+        }
+        if (userIds.indexOf(username) !== -1) {
+            errorMsg = '已存在该账户';
+            this.setState({errorMsg});
+            return false;
+        } else {
+            let data = {username, password, createTime: +new Date()};
+            console.log(data)
+            fetch(url,
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    this.setState({errorMsg});
+                    this.getUser();
+                    console.log('登陆成功')
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        }
     }
 
     render() {
         return (
             <Grid className={this.classes.root} container spacing={0} justify="center" alignItems="center"
                   direction="column">
-                <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                      className={this.classes.loginBox}
-                      style={{display: this.state.formSelect === 'login' ? '' : 'none'}}>
-                    <Button fab color="accent" aria-label="add"
-                            className={this.classes.rightBtn}
-                            onClick={() => this.toggleForm()}>
-                        <AddIcon/>
-                    </Button>
-                    <div className={this.classes.title}>
-                        <div style={{width: '195px'}}>LOGIN</div>
-                    </div>
-                    <Grid item>
-                        <TextField
-                            label="Username"
-                            value={this.state.username}
-                            onChange={this.handleChange('username')}
-                            margin="normal"
-                        />
-                    </Grid>
-                    <Grid item>
-                        <TextField
-                            label="Password"
-                            value={this.state.password}
-                            type="password"
-                            onChange={this.handleChange('password')}
-                            margin="normal"
-                        />
-                    </Grid>
-                    <Grid item>
-                        <Button raised color="primary" className={this.classes.submit}>
-                            <Done/>
+                {this.state.formSelect === 'login' ?
+                    <Grid container spacing={0} justify="center" alignItems="center" direction="column"
+                          className={`${this.classes.loginBox} ${css(animate.tinLeftIn)}`}>
+                        <Button fab color="accent" aria-label="add"
+                                className={this.classes.rightBtn}
+                                onClick={() => this.toggleForm()}>
+                            <AddIcon/>
                         </Button>
-                    </Grid>
-                </Grid>
-                <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                      className={this.classes.loginBox}
-                      style={{display: this.state.formSelect === 'register' ? '' : 'none'}}>
-                    <Button fab color="accent" aria-label="add"
-                            className={this.classes.rightBtn}
-                            onClick={() => this.toggleForm()}>
-                        <KeyboardArrowLeft/>
-                    </Button>
-                    <div className={this.classes.title}>
-                        <div style={{width: '195px'}}>REGISTER</div>
-                    </div>
-                    <Grid item>
-                        <TextField
-                            label="Username"
-                            value={this.state.username}
-                            onChange={this.handleChange('username')}
-                            margin="normal"
-                        />
-                    </Grid>
-                    <Grid item>
-                        <TextField
-                            label="Password"
-                            value={this.state.password}
-                            type="password"
-                            onChange={this.handleChange('password')}
-                            margin="normal"
-                        />
-                    </Grid>
-                    <Grid item>
-                        <Button raised color="primary" className={this.classes.submit}>
-                            <Done/>
+                        <div className={this.classes.title}>
+                            <div style={{width: '195px'}}>LOGIN</div>
+                        </div>
+                        <Grid item>
+                            <TextField
+                                label="Username"
+                                value={this.state.username}
+                                onChange={this.handleChange('username')}
+                                margin="normal"
+                            />
+                        </Grid>
+                        <Grid item>
+                            <TextField
+                                label="Password"
+                                value={this.state.password}
+                                type="password"
+                                onChange={this.handleChange('password')}
+                                margin="normal"
+                            />
+                        </Grid>
+                        {this.state.errorMsg ?
+                            <Grid item style={{position: 'relative'}}>
+                                <span
+                                    className={`${this.classes.errorMsg} ${css(animate.slideDownReturn)}`}>{this.state.errorMsg}</span>
+                            </Grid>
+                            : null
+                        }
+                        <Grid item>
+                            <Button raised color="primary"
+                                    className={this.classes.submit}
+                                    onClick={() => this.login()}>
+                                <Done/>
+                            </Button>
+                        </Grid>
+                    </Grid> :
+                    <Grid container spacing={0} justify="center" alignItems="center" direction="column"
+                          className={`${this.classes.loginBox} ${css(animate.tinRightIn)}`}>
+                        <Button fab color="accent" aria-label="add"
+                                className={this.classes.rightBtn}
+                                onClick={() => this.toggleForm()}>
+                            <KeyboardArrowLeft/>
                         </Button>
-                    </Grid>
-                </Grid>
+                        <div className={this.classes.title}>
+                            <div style={{width: '195px'}}>REGISTER</div>
+                        </div>
+                        <Grid item>
+                            <TextField
+                                label="Username"
+                                value={this.state.username}
+                                onChange={this.handleChange('username')}
+                                margin="normal"
+                            />
+                        </Grid>
+                        <Grid item>
+                            <TextField
+                                label="Password"
+                                value={this.state.password}
+                                type="password"
+                                onChange={this.handleChange('password')}
+                                margin="normal"
+                            />
+                        </Grid>
+                        {this.state.errorMsg ?
+                            <Grid item style={{position: 'relative'}}>
+                                <span
+                                    className={`${this.classes.errorMsg} ${css(animate.slideDownReturn)}`}>{this.state.errorMsg}</span>
+                            </Grid>
+                            : null
+                        }
+                        <Grid item>
+                            <Button raised color="primary" className={this.classes.submit}
+                                    onClick={() => this.register()}>
+                                <Done/>
+                            </Button>
+                        </Grid>
+                    </Grid>}
             </Grid>
         );
     }

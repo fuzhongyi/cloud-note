@@ -4,6 +4,7 @@ import './App.css';
 import Login from './pages/Login';
 import {MuiThemeProvider, createMuiTheme} from 'material-ui/styles';
 import pink from 'material-ui/colors/pink';
+// import {LinearProgress} from 'material-ui';
 const theme = createMuiTheme({
     overrides: {
         MuiFormLabel: {
@@ -26,6 +27,7 @@ class App extends Component {
         return (
             <MuiThemeProvider theme={theme}>
                 <div className="App">
+                    {/*<LinearProgress color="accent" style={{position: 'absolute', width: '100%'}}/>*/}
                     <Router>
                         <Route path="/" component={Login}/>
                         {/*<Route path="/home" component={Home}/>*/}
