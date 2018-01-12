@@ -2,9 +2,15 @@ import React, {Component} from 'react';
 import {BrowserRouter as Router, Route} from 'react-router-dom';
 import './App.css';
 import Login from './pages/Login';
+import Home from './pages/Home';
+
 import {MuiThemeProvider, createMuiTheme} from 'material-ui/styles';
 import pink from 'material-ui/colors/pink';
-// import {LinearProgress} from 'material-ui';
+import Loading from './components/Loading'
+import {createStore} from 'redux';
+import {Provider} from 'react-redux';
+import loadingReducer from './store/loading';
+let store = createStore(loadingReducer);
 const theme = createMuiTheme({
     overrides: {
         MuiFormLabel: {
@@ -18,22 +24,25 @@ const theme = createMuiTheme({
                     backgroundColor: pink['A200']
                 }
             },
-        },
-    },
+        }
+    }
 });
 
 class App extends Component {
     render() {
         return (
-            <MuiThemeProvider theme={theme}>
-                <div className="App">
-                    {/*<LinearProgress color="accent" style={{position: 'absolute', width: '100%'}}/>*/}
-                    <Router>
-                        <Route path="/" component={Login}/>
-                        {/*<Route path="/home" component={Home}/>*/}
-                    </Router>
-                </div>
-            </MuiThemeProvider>
+            <Provider store={store}>
+                <MuiThemeProvider theme={theme}>
+                    <div className="App">
+                        <Loading/>
+                        <Router>
+                            <Route path="/" component={Login}>
+                                {/*<Route path="/home" component={Home}/>*/}
+                            </Route>
+                        </Router>
+                    </div>
+                </MuiThemeProvider>
+            </Provider>
         );
     }
 }

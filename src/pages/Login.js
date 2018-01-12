@@ -84,7 +84,7 @@ const styles = theme => ({
         }
     }
 });
-const animate = StyleSheet.create({
+const animation = StyleSheet.create({
     tinLeftIn: {
         animationName: tinLeftIn,
         animationDuration: '1s'
@@ -95,7 +95,7 @@ const animate = StyleSheet.create({
     },
     slideDownReturn: {
         animationName: slideDownReturn,
-        animationDuration: '1s'
+        animationDuration: '.5s'
     }
 });
 const url = '//5a56cb24eb96f9001230ace6.mockapi.io/api/v1/users';
@@ -109,6 +109,7 @@ class Login extends Component {
             password: '',
             formSelect: '',
             errorMsg: '',
+            success: false,
             users: []
         }
     }
@@ -164,6 +165,7 @@ class Login extends Component {
         }
         if (errorMsg === '') {
             console.log('登陆成功');
+            this.setState({success:true});
         }
         this.setState({errorMsg})
     }
@@ -210,8 +212,8 @@ class Login extends Component {
                   direction="column">
                 {this.state.formSelect === 'login' ?
                     <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                          className={`${this.classes.loginBox} ${css(animate.tinLeftIn)}`}>
-                        <Button fab color="accent" aria-label="add"
+                          className={`${this.classes.loginBox} ${css(animation.tinLeftIn)}`}>
+                        <Button fab color="accent"
                                 className={this.classes.rightBtn}
                                 onClick={() => this.toggleForm()}>
                             <AddIcon/>
@@ -239,7 +241,7 @@ class Login extends Component {
                         {this.state.errorMsg ?
                             <Grid item style={{position: 'relative'}}>
                                 <span
-                                    className={`${this.classes.errorMsg} ${css(animate.slideDownReturn)}`}>{this.state.errorMsg}</span>
+                                    className={`${this.classes.errorMsg} ${css(animation.slideDownReturn)}`}>{this.state.errorMsg}</span>
                             </Grid>
                             : null
                         }
@@ -247,13 +249,13 @@ class Login extends Component {
                             <Button raised color="primary"
                                     className={this.classes.submit}
                                     onClick={() => this.login()}>
-                                <Done/>
+                                {this.state.success?<Done/>:'GO'}
                             </Button>
                         </Grid>
                     </Grid> :
                     <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                          className={`${this.classes.loginBox} ${css(animate.tinRightIn)}`}>
-                        <Button fab color="accent" aria-label="add"
+                          className={`${this.classes.loginBox} ${css(animation.tinRightIn)}`}>
+                        <Button fab color="accent"
                                 className={this.classes.rightBtn}
                                 onClick={() => this.toggleForm()}>
                             <KeyboardArrowLeft/>
@@ -281,14 +283,14 @@ class Login extends Component {
                         {this.state.errorMsg ?
                             <Grid item style={{position: 'relative'}}>
                                 <span
-                                    className={`${this.classes.errorMsg} ${css(animate.slideDownReturn)}`}>{this.state.errorMsg}</span>
+                                    className={`${this.classes.errorMsg} ${css(animation.slideDownReturn)}`}>{this.state.errorMsg}</span>
                             </Grid>
                             : null
                         }
                         <Grid item>
                             <Button raised color="primary" className={this.classes.submit}
                                     onClick={() => this.register()}>
-                                <Done/>
+                                {this.state.success?<Done/>:'GO'}
                             </Button>
                         </Grid>
                     </Grid>}
