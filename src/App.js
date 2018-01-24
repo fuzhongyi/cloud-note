@@ -9,7 +9,7 @@ import pink from 'material-ui/colors/pink';
 import Loading from './components/Loading'
 import {createStore} from 'redux';
 import {Provider} from 'react-redux';
-import loadingReducer from './store/loading';
+import loadingReducer from './store/loading'
 let store = createStore(loadingReducer);
 const theme = createMuiTheme({
     overrides: {
@@ -36,9 +36,10 @@ class App extends Component {
                     <div className="App">
                         <Loading/>
                         <Router>
-                            <Route path="/" component={Login}>
-                                {/*<Route path="/home" component={Home}/>*/}
-                            </Route>
+                           <div>
+                               <Route exact path="/" component={Login}/>
+                               <Route path="/home" component={Home}/>
+                           </div>
                         </Router>
                     </div>
                 </MuiThemeProvider>

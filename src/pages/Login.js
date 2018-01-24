@@ -98,7 +98,7 @@ const animation = StyleSheet.create({
         animationDuration: '.5s'
     }
 });
-const url = '//5a56cb24eb96f9001230ace6.mockapi.io/api/v1/users';
+const url = '//5a56cb24eb96f9001230ace6.mockapi.io/api/v1/user';
 
 class Login extends Component {
     constructor(props) {
@@ -164,22 +164,24 @@ class Login extends Component {
             }
         }
         if (errorMsg === '') {
-            console.log('登陆成功');
-            this.setState({success:true});
+            this.setState({success: true});
+            setTimeout((self) => {
+                self.props.history.push('/home');
+            }, 1000, this);
         }
         this.setState({errorMsg})
     }
 
     register() {
         const {username, password, users} = this.state;
-        let userIds = users.map(v => v.id);
         let errorMsg = '';
         if (username.trim() === '' || password === '') {
             errorMsg = '输入内容不能为空';
             this.setState({errorMsg});
             return false;
         }
-        if (userIds.indexOf(username) !== -1) {
+        let usernames = users.map(v => v.username);
+        if (usernames.indexOf(username) !== -1) {
             errorMsg = '已存在该账户';
             this.setState({errorMsg});
             return false;
@@ -198,7 +200,7 @@ class Login extends Component {
                 .then(data => {
                     this.setState({errorMsg});
                     this.getUser();
-                    console.log('登陆成功')
+                    console.log('注册成功')
                 })
                 .catch(error => {
                     console.log(error)
@@ -210,90 +212,49 @@ class Login extends Component {
         return (
             <Grid className={this.classes.root} container spacing={0} justify="center" alignItems="center"
                   direction="column">
-                {this.state.formSelect === 'login' ?
-                    <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                          className={`${this.classes.loginBox} ${css(animation.tinLeftIn)}`}>
-                        <Button fab color="accent"
-                                className={this.classes.rightBtn}
-                                onClick={() => this.toggleForm()}>
-                            <AddIcon/>
-                        </Button>
-                        <div className={this.classes.title}>
-                            <div style={{width: '195px'}}>LOGIN</div>
-                        </div>
-                        <Grid item>
-                            <TextField
-                                label="Username"
-                                value={this.state.username}
-                                onChange={this.handleChange('username')}
-                                margin="normal"
-                            />
-                        </Grid>
-                        <Grid item>
-                            <TextField
-                                label="Password"
-                                value={this.state.password}
-                                type="password"
-                                onChange={this.handleChange('password')}
-                                margin="normal"
-                            />
-                        </Grid>
-                        {this.state.errorMsg ?
-                            <Grid item style={{position: 'relative'}}>
+                <Grid container spacing={0} justify="center" alignItems="center" direction="column"
+                      className={`${this.classes.loginBox} ${css(this.state.formSelect === 'login' ? animation.tinLeftIn : animation.tinRightIn)}`}>
+                    <Button fab color="accent"
+                            className={this.classes.rightBtn}
+                            onClick={() => this.toggleForm()}>
+                        {this.state.formSelect === 'login' ? <AddIcon/> : <KeyboardArrowLeft/>}
+                    </Button>
+                    <div className={this.classes.title}>
+                        <div
+                            style={{width: '195px'}}>{this.state.formSelect === 'login' ? 'LOGIN' : 'REGISTER'}</div>
+                    </div>
+                    <Grid item>
+                        <TextField
+                            label="Username"
+                            value={this.state.username}
+                            onChange={this.handleChange('username')}
+                            margin="normal"
+                        />
+                    </Grid>
+                    <Grid item>
+                        <TextField
+                            label="Password"
+                            value={this.state.password}
+                            type="password"
+                            onChange={this.handleChange('password')}
+                            margin="normal"
+                        />
+                    </Grid>
+                    {this.state.errorMsg ?
+                        <Grid item style={{position: 'relative'}}>
                                 <span
                                     className={`${this.classes.errorMsg} ${css(animation.slideDownReturn)}`}>{this.state.errorMsg}</span>
-                            </Grid>
-                            : null
-                        }
-                        <Grid item>
-                            <Button raised color="primary"
-                                    className={this.classes.submit}
-                                    onClick={() => this.login()}>
-                                {this.state.success?<Done/>:'GO'}
-                            </Button>
                         </Grid>
-                    </Grid> :
-                    <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                          className={`${this.classes.loginBox} ${css(animation.tinRightIn)}`}>
-                        <Button fab color="accent"
-                                className={this.classes.rightBtn}
-                                onClick={() => this.toggleForm()}>
-                            <KeyboardArrowLeft/>
+                        : null
+                    }
+                    <Grid item>
+                        <Button raised color="primary"
+                                className={this.classes.submit}
+                                onClick={() => this.state.formSelect === 'login' ? this.login() : this.register()}>
+                            {this.state.success ? <Done/> : 'GO'}
                         </Button>
-                        <div className={this.classes.title}>
-                            <div style={{width: '195px'}}>REGISTER</div>
-                        </div>
-                        <Grid item>
-                            <TextField
-                                label="Username"
-                                value={this.state.username}
-                                onChange={this.handleChange('username')}
-                                margin="normal"
-                            />
-                        </Grid>
-                        <Grid item>
-                            <TextField
-                                label="Password"
-                                value={this.state.password}
-                                type="password"
-                                onChange={this.handleChange('password')}
-                                margin="normal"
-                            />
-                        </Grid>
-                        {this.state.errorMsg ?
-                            <Grid item style={{position: 'relative'}}>
-                                <span
-                                    className={`${this.classes.errorMsg} ${css(animation.slideDownReturn)}`}>{this.state.errorMsg}</span>
-                            </Grid>
-                            : null
-                        }
-                        <Grid item>
-                            <Button raised color="primary" className={this.classes.submit}
-                                    onClick={() => this.register()}>
-                                {this.state.success?<Done/>:'GO'}
-                            </Button>
-                        </Grid>
-                    </Grid>}
+                    </Grid>
+                </Grid>
             </Grid>
         );
     }
