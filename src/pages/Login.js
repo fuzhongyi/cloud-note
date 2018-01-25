@@ -10,8 +10,12 @@ import pink from 'material-ui/colors/pink';
 import red from 'material-ui/colors/red';
 import swirl from '../assets/swirl.png';
 import {tinLeftIn, tinRightIn, slideDownReturn} from 'react-magic'
+import {CircularProgress} from 'material-ui/Progress';
 import {StyleSheet, css} from 'aphrodite';
 const styles = theme => ({
+    progress: {
+        margin: `0 ${theme.spacing.unit * 2}px`,
+    },
     root: {
         backgroundImage: `url(${swirl})`,
         position: 'absolute',
@@ -110,13 +114,15 @@ class Login extends Component {
             formSelect: '',
             errorMsg: '',
             success: false,
-            users: []
+            users: [],
+            isLoading: false
         }
     }
 
     componentWillMount() {
         this.setState({
-            formSelect: 'login'
+            formSelect: 'login',
+            success: false
         });
         this.getUser();
     }
@@ -148,28 +154,32 @@ class Login extends Component {
     }
 
     login() {
+        this.setState({isLoading: true});
         const {username, password, users} = this.state;
         let errorMsg = '账户不存在';
-        if (username.trim() === '' || password === '') {
-            errorMsg = '输入内容不能为空';
-        } else {
-            for (let user of users) {
-                if (user.username === username) {
-                    if (user.password !== password) {
-                        errorMsg = '账户密码不匹配';
-                    } else {
-                        errorMsg = '';
+        setTimeout((self) => {
+            if (username.trim() === '' || password === '') {
+                errorMsg = '输入内容不能为空';
+            } else {
+                for (let user of users) {
+                    if (user.username === username) {
+                        if (user.password !== password) {
+                            errorMsg = '账户密码不匹配';
+                        } else {
+                            errorMsg = '';
+                        }
                     }
                 }
             }
-        }
-        if (errorMsg === '') {
-            this.setState({success: true});
-            setTimeout((self) => {
-                self.props.history.push('/home');
-            }, 1000, this);
-        }
-        this.setState({errorMsg})
+            if (errorMsg === '') {
+                this.setState({success: true});
+                setTimeout((self) => {
+                    self.props.history.push('/home');
+                }, 500, this);
+            }
+            this.setState({errorMsg});
+            this.setState({isLoading: false});
+        }, 1000, this);
     }
 
     register() {
@@ -187,7 +197,7 @@ class Login extends Component {
             return false;
         } else {
             let data = {username, password, createTime: +new Date()};
-            console.log(data)
+            this.setState({isLoading: true});
             fetch(url,
                 {
                     method: 'post',
@@ -198,12 +208,13 @@ class Login extends Component {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    this.setState({errorMsg});
-                    this.getUser();
-                    console.log('注册成功')
+                    setTimeout((self) => {
+                        self.setState({errorMsg, isLoading: false, success: true});
+                        self.getUser();
+                    }, 1000, this);
                 })
                 .catch(error => {
-                    console.log(error)
+                    this.setState({isLoading: false});
                 })
         }
     }
@@ -248,10 +259,15 @@ class Login extends Component {
                         : null
                     }
                     <Grid item>
-                        <Button raised color="primary"
+                        <Button raised color="primary" disabled={this.state.isLoading}
                                 className={this.classes.submit}
                                 onClick={() => this.state.formSelect === 'login' ? this.login() : this.register()}>
-                            {this.state.success ? <Done/> : 'GO'}
+                            {this.state.success ? <Done/> :
+                                (this.state.isLoading ?
+                                    <CircularProgress
+                                        className={this.classes.progress}
+                                        size={25}
+                                        color="inherit"/> : 'GO')}
                         </Button>
                     </Grid>
                 </Grid>
