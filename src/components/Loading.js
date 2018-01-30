@@ -2,10 +2,13 @@ import React, {Component} from 'react';
 import {LinearProgress} from 'material-ui';
 import {withStyles} from 'material-ui/styles';
 import {connect} from 'react-redux';
+
 const styles = theme => ({
     loading: {
-        position: 'absolute',
-        width: '100%'
+        position: 'fixed',
+        width: '100%',
+        zIndex: 9999,
+        top: 0
     }
 });
 
@@ -25,6 +28,6 @@ class Loading extends Component {
     }
 }
 const mapStateToProps = (state) => {
-    return {loading: state.loading}
+    return {loading: state.loading.loading}
 };
 export default connect(mapStateToProps)(withStyles(styles)(Loading));

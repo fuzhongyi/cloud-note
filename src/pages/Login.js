@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
+import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {Button, TextField} from 'material-ui';
-import {Grid} from 'material-ui';
+import {Grid, Snackbar, Slide} from 'material-ui';
 import {withStyles} from 'material-ui/styles';
 import Done from 'material-ui-icons/Done';
 import AddIcon from 'material-ui-icons/Add';
@@ -9,9 +10,11 @@ import KeyboardArrowLeft from 'material-ui-icons/KeyboardArrowLeft';
 import pink from 'material-ui/colors/pink';
 import red from 'material-ui/colors/red';
 import swirl from '../assets/swirl.png';
-import {tinLeftIn, tinRightIn, slideDownReturn} from 'react-magic'
+import {twisterInUp, twisterInDown, slideDownReturn} from 'react-magic'
 import {CircularProgress} from 'material-ui/Progress';
 import {StyleSheet, css} from 'aphrodite';
+import {setUser} from '../store/user';
+
 const styles = theme => ({
     progress: {
         margin: `0 ${theme.spacing.unit * 2}px`,
@@ -86,15 +89,18 @@ const styles = theme => ({
         '@media only screen and (min-width: 960px)': {
             width: 195
         }
+    },
+    snackbar: {
+        margin: theme.spacing.unit
     }
 });
 const animation = StyleSheet.create({
-    tinLeftIn: {
-        animationName: tinLeftIn,
+    twisterInUp: {
+        animationName: twisterInUp,
         animationDuration: '1s'
     },
-    tinRightIn: {
-        animationName: tinRightIn,
+    twisterInDown: {
+        animationName: twisterInDown,
         animationDuration: '1s'
     },
     slideDownReturn: {
@@ -115,8 +121,16 @@ class Login extends Component {
             errorMsg: '',
             success: false,
             users: [],
-            isLoading: false
+            isLoading: false,
+            toast: {
+                open: false,
+                msg: ''
+            }
         }
+    }
+
+    transitionUp(props) {
+        return <Slide direction="up" {...props} />;
     }
 
     componentWillMount() {
@@ -124,15 +138,15 @@ class Login extends Component {
             formSelect: 'login',
             success: false
         });
-        this.getUser();
+        this.getUsers();
     }
 
-    getUser() {
+    getUsers() {
         fetch(url, {method: 'get'})
             .then(response => response.json())
             .then(users => this.setState({users}))
             .catch(error => {
-                console.log(error)
+                alert(error)
             })
     }
 
@@ -146,6 +160,7 @@ class Login extends Component {
 
     toggleForm() {
         this.setState(prevState => ({
+            success: false,
             username: '',
             password: '',
             errorMsg: '',
@@ -156,15 +171,15 @@ class Login extends Component {
     login() {
         this.setState({isLoading: true});
         const {username, password, users} = this.state;
-        let errorMsg = '账户不存在';
+        let errorMsg = 'Account does not exist 😭';
         setTimeout((self) => {
             if (username.trim() === '' || password === '') {
-                errorMsg = '输入内容不能为空';
+                errorMsg = 'Content can not be empty 😭';
             } else {
                 for (let user of users) {
                     if (user.username === username) {
                         if (user.password !== password) {
-                            errorMsg = '账户密码不匹配';
+                            errorMsg = 'Account mismatch 😭';
                         } else {
                             errorMsg = '';
                         }
@@ -173,9 +188,11 @@ class Login extends Component {
             }
             if (errorMsg === '') {
                 this.setState({success: true});
+                this.showToast('Login success 😉');
+                this.props.setUser({username, password});
                 setTimeout((self) => {
-                    self.props.history.push('/home');
-                }, 500, this);
+                    self.props.history.push('/');
+                }, 2000, this);
             }
             this.setState({errorMsg});
             this.setState({isLoading: false});
@@ -186,13 +203,13 @@ class Login extends Component {
         const {username, password, users} = this.state;
         let errorMsg = '';
         if (username.trim() === '' || password === '') {
-            errorMsg = '输入内容不能为空';
+            errorMsg = 'Content can not be empty 😭';
             this.setState({errorMsg});
             return false;
         }
         let usernames = users.map(v => v.username);
         if (usernames.indexOf(username) !== -1) {
-            errorMsg = '已存在该账户';
+            errorMsg = 'Account has already existed 😭';
             this.setState({errorMsg});
             return false;
         } else {
@@ -210,13 +227,22 @@ class Login extends Component {
                 .then(data => {
                     setTimeout((self) => {
                         self.setState({errorMsg, isLoading: false, success: true});
-                        self.getUser();
-                    }, 1000, this);
+                        self.showToast('Registration success 😉');
+                        self.getUsers();
+                    }, 2000, this);
                 })
                 .catch(error => {
                     this.setState({isLoading: false});
+                    alert(error);
                 })
         }
+    }
+
+    showToast(msg) {
+        this.setState({toast: {open: true, msg}});
+        setTimeout(() => {
+            this.setState({toast: {open: false}});
+        }, 2000);
     }
 
     render() {
@@ -224,7 +250,7 @@ class Login extends Component {
             <Grid className={this.classes.root} container spacing={0} justify="center" alignItems="center"
                   direction="column">
                 <Grid container spacing={0} justify="center" alignItems="center" direction="column"
-                      className={`${this.classes.loginBox} ${css(this.state.formSelect === 'login' ? animation.tinLeftIn : animation.tinRightIn)}`}>
+                      className={`${this.classes.loginBox} ${css(this.state.formSelect === 'login' ? animation.twisterInUp : animation.twisterInDown)}`}>
                     <Button fab color="accent"
                             className={this.classes.rightBtn}
                             onClick={() => this.toggleForm()}>
@@ -271,11 +297,28 @@ class Login extends Component {
                         </Button>
                     </Grid>
                 </Grid>
+                <Snackbar
+                    className={this.classes.snackbar}
+                    open={this.state.toast.open}
+                    transition={this.transitionUp}
+                    message={this.state.toast.msg}>
+                </Snackbar>
             </Grid>
         );
     }
 }
+
+const mapStateToProps = (state) => {
+    return {user: state.user.user}
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        setUser: (user) => dispatch(setUser(user))
+    }
+};
+
 Login.propTypes = {
     classes: PropTypes.object.isRequired
 };
-export default withStyles(styles)(Login);
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Login));
