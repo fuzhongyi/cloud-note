@@ -20,5 +20,5 @@ npm run build || yarn build
 ![](http://p02hf9fn0.bkt.clouddn.com/cloud-note/screenshot/cloud-note.gif)
 
 ## Online Demo
-***
-[Preview](https://fuzhongyi.github.io/cloud-note)(Please use the chrome developer mobile mode to preview)
+
+[[**Preview**]](https://fuzhongyi.github.io/cloud-note)(Please use the chrome developer mobile mode to preview)
